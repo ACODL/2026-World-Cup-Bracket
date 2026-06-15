@@ -349,6 +349,50 @@
   .ls-table tr.ls-qual td:first-child { border-left: 3px solid var(--green-light); }
   .ls-updated { font-size: 0.75rem; color: var(--gray-400); margin-bottom: 14px; }
 
+  /* Knockout bracket */
+  .bracket-hint { font-size: 0.78rem; color: var(--gray-600); margin-bottom: 12px; line-height: 1.45; }
+  .team-tray {
+    display: flex; flex-wrap: wrap; gap: 6px;
+    background: var(--gray-50); border: 1.5px solid var(--gray-200);
+    border-radius: 10px; padding: 10px; margin-bottom: 14px;
+    max-height: 150px; overflow-y: auto;
+  }
+  .tray-chip {
+    background: white; border: 1.5px solid var(--gray-200); border-radius: 20px;
+    padding: 5px 12px; font-size: 0.78rem; font-weight: 600; color: var(--gray-800);
+    cursor: grab; user-select: none; touch-action: none; white-space: nowrap;
+  }
+  .tray-chip.used { opacity: 0.3; pointer-events: none; }
+  .bracket-scroll { overflow-x: auto; overflow-y: hidden; padding-bottom: 12px; -webkit-overflow-scrolling: touch; }
+  .bracket { display: flex; gap: 8px; min-width: max-content; align-items: stretch; }
+  .bracket-round { display: flex; flex-direction: column; justify-content: space-around; min-width: 144px; }
+  .round-head {
+    font-size: 0.62rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em;
+    color: var(--gray-400); text-align: center; margin-bottom: 6px;
+  }
+  .match { display: flex; flex-direction: column; gap: 3px; margin: 6px 0; }
+  .slot {
+    display: flex; align-items: center; gap: 6px;
+    background: var(--gray-50); border: 1.5px solid var(--gray-200);
+    border-radius: 7px; padding: 7px 9px; font-size: 0.77rem; min-height: 34px;
+    cursor: pointer; transition: background 0.12s, border-color 0.12s; line-height: 1.2;
+  }
+  .slot.empty { color: var(--gray-400); font-style: italic; cursor: default; }
+  .slot.drop-target { border-color: var(--green-light); background: #eafaf0; }
+  .slot.winner { border-color: var(--green); background: #eafaf0; font-weight: 700; color: var(--green-dark); }
+  .champion-box { display: flex; flex-direction: column; justify-content: center; align-items: center; min-width: 150px; }
+  .champion-slot {
+    border: 2px solid var(--gold); background: #fffbe6; border-radius: 12px;
+    padding: 16px 14px; text-align: center; font-weight: 800; color: var(--green-dark);
+    min-width: 130px; font-size: 0.95rem;
+  }
+  .drag-ghost {
+    position: fixed; z-index: 9999; pointer-events: none;
+    background: var(--green); color: white; border-radius: 20px;
+    padding: 6px 14px; font-size: 0.8rem; font-weight: 700;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.35); transform: translate(-50%, -50%);
+  }
+
   @media (max-width: 600px) {
     .header-top { gap: 8px; }
     .header-title h1 { font-size: 1.1rem; }
@@ -482,9 +526,12 @@
   <!-- ── Knockout ── -->
   <div class="tab-panel" id="tab-knockout">
     <div class="card">
-      <div class="card-title"><span class="icon">🎯</span> Knockout Stage Picks</div>
-      <p class="hint" style="margin-bottom:16px">Predict who advances through each round. Points are awarded when actual results are entered in the Results tab.</p>
-      <div id="knockout-content"></div>
+      <div class="card-title"><span class="icon">🎯</span> Knockout Bracket</div>
+      <p class="bracket-hint">Drag teams from the tray into the <strong>Round of 32</strong> slots. Once both teams in a matchup are filled, tap the one you think wins to advance them — round by round, all the way to your <strong>Champion</strong>. Scroll sideways to reach later rounds. Your semi-finalists, finalist, and champion all flow from how far you push each team.</p>
+      <div class="team-tray" id="bracket-tray"></div>
+      <div class="bracket-scroll">
+        <div class="bracket" id="bracket-cols"></div>
+      </div>
     </div>
   </div>
 
@@ -652,7 +699,8 @@ function emptyPicks() {
     winner: "", runnerUp: "", third: "", goldenBoot: "", bestPlayer: "", darkHorse: "",
     sf1: "", sf2: "", sf3: "", sf4: "",
     groups: {},
-    knockout: { r32: [], r16: [], qf: [] }
+    knockout: { r32: [], r16: [], qf: [] },
+    bracket: { r32: [], r16: [], qf: [], sf: [], final: [], champion: "" }
   };
 }
 
@@ -787,27 +835,189 @@ function buildResultsGroupsGrid() {
   `).join("");
 }
 
+// ────────────────────────────────────────────
+// KNOCKOUT BRACKET
+// ────────────────────────────────────────────
+
+const BR_ROUNDS = [
+  { key: "r32",   label: "Round of 32",    matches: 16 },
+  { key: "r16",   label: "Round of 16",    matches: 8 },
+  { key: "qf",    label: "Quarter-finals", matches: 4 },
+  { key: "sf",    label: "Semi-finals",    matches: 2 },
+  { key: "final", label: "Final",          matches: 1 },
+];
+const BR_NEXT = { r32: "r16", r16: "qf", qf: "sf", sf: "final", final: "champion" };
+const BR_SIZES = { r32: 32, r16: 16, qf: 8, sf: 4, final: 2 };
+
+// Make sure a picks object has a fully-formed bracket (older saved picks won't).
+function ensureBracket(pk) {
+  if (!pk.bracket || typeof pk.bracket !== "object") pk.bracket = {};
+  const b = pk.bracket;
+  Object.entries(BR_SIZES).forEach(([k, n]) => {
+    if (!Array.isArray(b[k])) b[k] = [];
+    while (b[k].length < n) b[k].push("");
+  });
+  if (typeof b.champion !== "string") b.champion = "";
+  return b;
+}
+
+// Map bracket outcomes onto the fields that actually score.
+function syncBracketDerived(pk) {
+  const b = ensureBracket(pk);
+  pk.knockout = pk.knockout || { r32: [], r16: [], qf: [] };
+  pk.knockout.r32 = b.r16.slice(0, 16); // R32 winners == R16 participants
+  pk.knockout.r16 = b.qf.slice(0, 8);
+  pk.knockout.qf  = b.sf.slice(0, 4);
+  pk.sf1 = b.sf[0] || ""; pk.sf2 = b.sf[1] || "";
+  pk.sf3 = b.sf[2] || ""; pk.sf4 = b.sf[3] || "";
+  if (b.champion) {
+    pk.winner = b.champion;
+    const a = b.final[0], c = b.final[1];
+    if (b.champion === a) pk.runnerUp = c || "";
+    else if (b.champion === c) pk.runnerUp = a || "";
+  }
+}
+
+function brSaveAndRender() {
+  const pk = p();
+  syncBracketDerived(pk);
+  localStorage.setItem(`wc26-p${currentPlayer + 1}`, JSON.stringify(pk));
+  queueSave(currentPlayer);
+  renderBracket();
+  renderScoreboard();
+}
+
+// Clear the winner of (roundKey, matchIdx) and every downstream pick it fed.
+function brClearForward(roundKey, matchIdx) {
+  const b = ensureBracket(p());
+  const next = BR_NEXT[roundKey];
+  if (next === "champion") { if (b.champion) b.champion = ""; return; }
+  if (b[next][matchIdx]) {
+    b[next][matchIdx] = "";
+    brClearForward(next, Math.floor(matchIdx / 2));
+  }
+}
+
+// Drop a team into a Round-of-32 slot (move semantics: each team appears once in R32).
+function brPlace(team, slotIdx) {
+  const b = ensureBracket(p());
+  for (let i = 0; i < 32; i++) {
+    if (b.r32[i] === team && i !== slotIdx) { b.r32[i] = ""; brClearForward("r32", Math.floor(i / 2)); }
+  }
+  if (b.r32[slotIdx] === team) return;
+  b.r32[slotIdx] = team;
+  brClearForward("r32", Math.floor(slotIdx / 2));
+  brSaveAndRender();
+}
+
+// Advance a team as the winner of its matchup (needs both participants present).
+function brAdvance(roundKey, slotIdx) {
+  const b = ensureBracket(p());
+  const team = b[roundKey][slotIdx];
+  if (!team) return;
+  const m = Math.floor(slotIdx / 2);
+  const a = b[roundKey][2 * m], c = b[roundKey][2 * m + 1];
+  if (!a || !c) return; // can't pick a winner until both teams are in
+  const next = BR_NEXT[roundKey];
+  if (next === "champion") {
+    if (b.champion === team) return;
+    b.champion = team;
+  } else {
+    if (b[next][m] === team) return;
+    b[next][m] = team;
+    brClearForward(next, Math.floor(m / 2));
+  }
+  brSaveAndRender();
+}
+
+function brSlotHTML(roundKey, slotIdx, team, winner) {
+  const isR32 = roundKey === "r32";
+  const empty = !team;
+  const isWinner = team && team === winner;
+  const cls = `slot${empty ? " empty" : ""}${isWinner ? " winner" : ""}`;
+  const dropAttr = isR32 ? `data-br-round="${roundKey}" data-br-slot="${slotIdx}"` : "";
+  const onclick = team ? `onclick="brAdvance('${roundKey}', ${slotIdx})"` : "";
+  const label = empty ? (isR32 ? "Drop team" : "—") : team;
+  return `<div class="${cls}" ${dropAttr} ${onclick}>${label}</div>`;
+}
+
+function renderBracket() {
+  const pk = p();
+  const b = ensureBracket(pk);
+
+  const tray = document.getElementById("bracket-tray");
+  if (tray) {
+    const used = new Set(b.r32.filter(Boolean));
+    tray.innerHTML = ALL_TEAMS.map(t =>
+      `<div class="tray-chip${used.has(t) ? " used" : ""}" data-team="${t}">${t}</div>`
+    ).join("");
+  }
+
+  const wrap = document.getElementById("bracket-cols");
+  if (!wrap) return;
+  let html = "";
+  BR_ROUNDS.forEach(round => {
+    html += `<div class="bracket-round"><div class="round-head">${round.label}</div>`;
+    for (let m = 0; m < round.matches; m++) {
+      const top = b[round.key][2 * m] || "";
+      const bot = b[round.key][2 * m + 1] || "";
+      const winner = BR_NEXT[round.key] === "champion" ? b.champion : (b[BR_NEXT[round.key]][m] || "");
+      html += `<div class="match">
+        ${brSlotHTML(round.key, 2 * m, top, winner)}
+        ${brSlotHTML(round.key, 2 * m + 1, bot, winner)}
+      </div>`;
+    }
+    html += `</div>`;
+  });
+  html += `<div class="champion-box"><div class="round-head">Champion</div>
+    <div class="champion-slot">${b.champion ? b.champion : "🏆"}</div></div>`;
+  wrap.innerHTML = html;
+}
+
+// Pointer-based drag (works for both mouse and touch).
+let brDrag = null;
+function brPointerDown(e) {
+  const chip = e.target.closest(".tray-chip");
+  if (!chip || chip.classList.contains("used")) return;
+  e.preventDefault();
+  const ghost = document.createElement("div");
+  ghost.className = "drag-ghost";
+  ghost.textContent = chip.dataset.team;
+  document.body.appendChild(ghost);
+  brDrag = { team: chip.dataset.team, ghost };
+  brMoveGhost(e);
+  window.addEventListener("pointermove", brPointerMove);
+  window.addEventListener("pointerup", brPointerUp);
+}
+function brMoveGhost(e) {
+  if (brDrag) { brDrag.ghost.style.left = e.clientX + "px"; brDrag.ghost.style.top = e.clientY + "px"; }
+}
+function brSlotAt(x, y) {
+  const el = document.elementFromPoint(x, y);
+  return el && el.closest ? el.closest('.slot[data-br-round="r32"]') : null;
+}
+function brPointerMove(e) {
+  brMoveGhost(e);
+  document.querySelectorAll(".slot.drop-target").forEach(s => s.classList.remove("drop-target"));
+  const slot = brSlotAt(e.clientX, e.clientY);
+  if (slot) slot.classList.add("drop-target");
+}
+function brPointerUp(e) {
+  const slot = brSlotAt(e.clientX, e.clientY);
+  if (slot && brDrag) brPlace(brDrag.team, parseInt(slot.dataset.brSlot));
+  if (brDrag) { brDrag.ghost.remove(); brDrag = null; }
+  document.querySelectorAll(".slot.drop-target").forEach(s => s.classList.remove("drop-target"));
+  window.removeEventListener("pointermove", brPointerMove);
+  window.removeEventListener("pointerup", brPointerUp);
+}
+
 function buildKnockoutSection() {
-  const container = document.getElementById("knockout-content");
-  container.innerHTML = KNOCKOUT_ROUNDS.map(round => `
-    <div style="margin-bottom:20px">
-      <div class="card-title" style="font-size:0.88rem; margin-bottom:10px;">
-        <span class="icon">🔵</span> ${round.label} Winners
-        <span class="badge blue" style="margin-left:4px">${round.key === 'r32' ? '1' : round.key === 'r16' ? '2' : '3'} pt${round.key !== 'r32' ? 's' : ''} each</span>
-      </div>
-      <div class="field-grid">
-        ${Array.from({length: round.count}, (_, i) => `
-          <div class="field-group">
-            <label class="field-label">Match ${i+1} Winner</label>
-            <select class="field-select" data-round="${round.key}" data-idx="${i}"
-              onchange="saveKnockoutPick('${round.key}', ${i}, this.value)">
-              ${teamOptions()}
-            </select>
-          </div>
-        `).join("")}
-      </div>
-    </div>
-  `).join("");
+  renderBracket();
+  const tray = document.getElementById("bracket-tray");
+  if (tray && !tray.dataset.bound) {
+    tray.addEventListener("pointerdown", brPointerDown);
+    tray.dataset.bound = "1";
+  }
 }
 
 // ────────────────────────────────────────────
@@ -844,14 +1054,8 @@ function renderCurrentPlayer() {
     });
   });
 
-  // Knockout picks
-  KNOCKOUT_ROUNDS.forEach(round => {
-    const roundPicks = picks.knockout[round.key] || [];
-    document.querySelectorAll(`[data-round="${round.key}"]`).forEach(sel => {
-      const idx = parseInt(sel.dataset.idx);
-      sel.innerHTML = teamOptions(roundPicks[idx] || "");
-    });
-  });
+  // Knockout bracket
+  renderBracket();
 
   // Results
   const res = state.results;

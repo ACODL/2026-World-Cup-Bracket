@@ -305,6 +305,50 @@
   }
   .info-bar .icon { font-size: 1.5rem; flex-shrink: 0; }
 
+  /* Live standings */
+  .ls-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 14px;
+  }
+  .ls-group {
+    background: var(--gray-50);
+    border: 1.5px solid var(--gray-200);
+    border-radius: 10px;
+    padding: 12px 14px;
+  }
+  .ls-group-name {
+    font-weight: 700;
+    font-size: 0.8rem;
+    color: var(--green-dark);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 8px;
+  }
+  .ls-table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+  .ls-table th {
+    text-align: center;
+    font-size: 0.62rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: var(--gray-400);
+    padding: 4px 3px;
+    border-bottom: 1.5px solid var(--gray-200);
+  }
+  .ls-table th:nth-child(2) { text-align: left; }
+  .ls-table td {
+    text-align: center;
+    padding: 6px 3px;
+    border-bottom: 1px solid var(--gray-100);
+  }
+  .ls-table tr:last-child td { border-bottom: none; }
+  .ls-pos { color: var(--gray-400); font-weight: 700; width: 18px; }
+  .ls-team { text-align: left !important; font-weight: 600; }
+  .ls-pts { font-weight: 700; color: var(--green-dark); }
+  .ls-table tr.ls-qual .ls-pos { color: var(--green-light); }
+  .ls-table tr.ls-qual td:first-child { border-left: 3px solid var(--green-light); }
+  .ls-updated { font-size: 0.75rem; color: var(--gray-400); margin-bottom: 14px; }
+
   @media (max-width: 600px) {
     .header-top { gap: 8px; }
     .header-title h1 { font-size: 1.1rem; }
@@ -340,6 +384,7 @@
   <nav class="tabs">
     <button class="tab-btn active" onclick="showTab('tournament', this)">🏆 Tournament</button>
     <button class="tab-btn" onclick="showTab('groups', this)">⚽ Groups</button>
+    <button class="tab-btn" onclick="showTab('live', this)">📡 Live</button>
     <button class="tab-btn" onclick="showTab('knockout', this)">🎯 Knockout</button>
     <button class="tab-btn" onclick="showTab('results', this)">📋 Results</button>
     <button class="tab-btn" onclick="showTab('scoreboard', this)">📊 Scoreboard</button>
@@ -440,6 +485,18 @@
       <div class="card-title"><span class="icon">🎯</span> Knockout Stage Picks</div>
       <p class="hint" style="margin-bottom:16px">Predict who advances through each round. Points are awarded when actual results are entered in the Results tab.</p>
       <div id="knockout-content"></div>
+    </div>
+  </div>
+
+  <!-- ── Live Standings ── -->
+  <div class="tab-panel" id="tab-live">
+    <div class="card">
+      <div class="card-title"><span class="icon">📡</span> Live Group Standings</div>
+      <p class="hint" style="margin-bottom:6px">Real-time tables straight from the football API, updated as matches play. The top two of each group (green) advance directly; the eight best third-placed teams also reach the Round of 32.</p>
+      <div class="ls-updated" id="ls-updated"></div>
+      <div class="ls-grid" id="live-standings">
+        <div class="empty-state"><p>Loading live standings…</p></div>
+      </div>
     </div>
   </div>
 
@@ -910,6 +967,7 @@ function showTab(name, btn) {
   document.getElementById(`tab-${name}`).classList.add("active");
   if (btn) btn.classList.add("active");
   if (name === "scoreboard") renderScoreboard();
+  if (name === "live") renderLiveStandings();
 }
 
 // ────────────────────────────────────────────
@@ -1241,6 +1299,10 @@ async function syncLiveResults({ silent = false } = {}) {
       renderCurrentPlayer();
     }
 
+    if (standings && document.getElementById("tab-live")?.classList.contains("active")) {
+      renderLiveStandings(standings);
+    }
+
     const allDead = !standings && !scorers && !matches;
     if (statusEl) {
       statusEl.textContent = allDead
@@ -1251,6 +1313,59 @@ async function syncLiveResults({ silent = false } = {}) {
     if (statusEl) statusEl.textContent = "Sync unavailable";
     if (!silent) console.error("Live sync failed:", e);
   }
+}
+
+// Render the provisional group tables in the Live tab.
+// Accepts an already-fetched standings object (from a sync) or fetches its own.
+async function renderLiveStandings(prefetched) {
+  const container = document.getElementById("live-standings");
+  const updatedEl = document.getElementById("ls-updated");
+  if (!container) return;
+
+  let data = prefetched;
+  if (!data) {
+    container.innerHTML = `<div class="empty-state"><p>Loading live standings…</p></div>`;
+    try { data = await fetchResource("standings"); }
+    catch (e) {
+      container.innerHTML = `<div class="empty-state"><div class="big-icon">📡</div><p>Couldn't reach the live feed right now. Try again during a match window.</p></div>`;
+      return;
+    }
+  }
+
+  const groups = (data?.standings || []).filter(s => s.type === "TOTAL" && s.group);
+  if (!groups.length) {
+    container.innerHTML = `<div class="empty-state"><div class="big-icon">⏳</div><p>No standings published yet — they appear once group games kick off.</p></div>`;
+    return;
+  }
+
+  groups.sort((a, b) => String(a.group).localeCompare(String(b.group)));
+  container.innerHTML = groups.map(s => {
+    const key = String(s.group).replace(/GROUP[_\s]*/i, "").trim().toUpperCase();
+    const teams = GROUPS[key]?.teams || [];
+    const rows = (s.table || []).map((r, i) => {
+      const name = matchTeam(r.team?.name, teams) || r.team?.name || "—";
+      const gd = r.goalDifference ?? 0;
+      return `<tr class="${i < 2 ? "ls-qual" : ""}">
+        <td class="ls-pos">${r.position ?? i + 1}</td>
+        <td class="ls-team">${name}</td>
+        <td>${r.playedGames ?? 0}</td>
+        <td>${r.won ?? 0}</td>
+        <td>${r.draw ?? 0}</td>
+        <td>${r.lost ?? 0}</td>
+        <td>${(gd >= 0 ? "+" : "") + gd}</td>
+        <td class="ls-pts">${r.points ?? 0}</td>
+      </tr>`;
+    }).join("");
+    return `<div class="ls-group">
+      <div class="ls-group-name">${GROUPS[key]?.name || ("Group " + key)}</div>
+      <table class="ls-table">
+        <thead><tr><th>#</th><th>Team</th><th>P</th><th>W</th><th>D</th><th>L</th><th>GD</th><th>Pts</th></tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>`;
+  }).join("");
+
+  if (updatedEl) updatedEl.textContent = `Updated ${new Date().toLocaleTimeString()}`;
 }
 
 // ────────────────────────────────────────────

@@ -1,0 +1,1265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>World Cup 2026 Predictions</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --green: #1a6b2f;
+    --green-light: #2d9e4a;
+    --green-dark: #0e4a1f;
+    --gold: #f5c518;
+    --gold-dark: #c9a200;
+    --white: #ffffff;
+    --gray-50: #f8f9fa;
+    --gray-100: #f0f2f4;
+    --gray-200: #e2e6ea;
+    --gray-400: #9aa3ae;
+    --gray-600: #5a6472;
+    --gray-800: #2c333d;
+    --red: #e03535;
+  }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: var(--gray-100);
+    color: var(--gray-800);
+    min-height: 100vh;
+  }
+
+  /* ── Header ── */
+  header {
+    background: linear-gradient(135deg, var(--green-dark) 0%, var(--green) 60%, var(--green-light) 100%);
+    color: white;
+    padding: 0 20px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.3);
+  }
+  .header-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 0 10px;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .header-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .header-title h1 { font-size: 1.3rem; font-weight: 700; line-height: 1.2; }
+  .header-title .subtitle { font-size: 0.75rem; opacity: 0.8; }
+  .header-actions { display: flex; gap: 8px; align-items: center; }
+
+  /* Player switcher */
+  .player-switcher {
+    display: flex;
+    background: rgba(0,0,0,0.2);
+    border-radius: 24px;
+    padding: 3px;
+    gap: 2px;
+  }
+  .player-btn {
+    background: none;
+    border: none;
+    color: rgba(255,255,255,0.7);
+    padding: 6px 16px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    font-weight: 600;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+  .player-btn.active {
+    background: white;
+    color: var(--green-dark);
+  }
+
+  /* Buttons */
+  .btn {
+    padding: 7px 14px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    font-size: 0.8rem;
+    font-weight: 600;
+    transition: all 0.2s;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+  }
+  .btn-gold { background: var(--gold); color: var(--gray-800); }
+  .btn-gold:hover { background: var(--gold-dark); }
+  .btn-outline { background: rgba(255,255,255,0.15); color: white; border: 1px solid rgba(255,255,255,0.3); }
+  .btn-outline:hover { background: rgba(255,255,255,0.25); }
+  .btn-sm { padding: 5px 10px; font-size: 0.75rem; }
+
+  /* Tabs */
+  nav.tabs {
+    display: flex;
+    gap: 0;
+    border-top: 1px solid rgba(255,255,255,0.15);
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  nav.tabs::-webkit-scrollbar { display: none; }
+  .tab-btn {
+    background: none;
+    border: none;
+    color: rgba(255,255,255,0.65);
+    padding: 10px 18px;
+    cursor: pointer;
+    font-size: 0.82rem;
+    font-weight: 600;
+    border-bottom: 3px solid transparent;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+  .tab-btn:hover { color: white; }
+  .tab-btn.active { color: var(--gold); border-bottom-color: var(--gold); }
+
+  /* ── Main ── */
+  main { max-width: 960px; margin: 0 auto; padding: 24px 16px 60px; }
+
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; }
+
+  /* Section cards */
+  .card {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 16px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+  }
+  .card-title {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--green-dark);
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .card-title .icon { font-size: 1.2rem; }
+
+  /* Form fields */
+  .field-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 12px;
+  }
+  .field-group { display: flex; flex-direction: column; gap: 4px; }
+  .field-label { font-size: 0.75rem; font-weight: 600; color: var(--gray-600); text-transform: uppercase; letter-spacing: 0.04em; }
+  .field-input, .field-select {
+    padding: 9px 12px;
+    border: 1.5px solid var(--gray-200);
+    border-radius: 8px;
+    font-size: 0.9rem;
+    color: var(--gray-800);
+    background: var(--gray-50);
+    transition: border-color 0.2s;
+    width: 100%;
+  }
+  .field-input:focus, .field-select:focus {
+    outline: none;
+    border-color: var(--green-light);
+    background: white;
+  }
+  .field-select { cursor: pointer; }
+
+  /* Groups grid */
+  .groups-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 14px;
+  }
+  .group-card {
+    background: var(--gray-50);
+    border: 1.5px solid var(--gray-200);
+    border-radius: 10px;
+    padding: 14px;
+  }
+  .group-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+  }
+  .group-name {
+    font-weight: 700;
+    font-size: 0.85rem;
+    color: var(--green-dark);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  .group-teams { font-size: 0.75rem; color: var(--gray-400); }
+  .group-picks { display: flex; flex-direction: column; gap: 6px; }
+  .group-pick-row { display: flex; align-items: center; gap: 8px; }
+  .pick-badge {
+    background: var(--green);
+    color: white;
+    font-size: 0.65rem;
+    font-weight: 700;
+    padding: 2px 6px;
+    border-radius: 4px;
+    min-width: 28px;
+    text-align: center;
+    flex-shrink: 0;
+  }
+  .pick-badge.second { background: var(--gray-400); }
+
+  /* Results / comparison */
+  .match-table { width: 100%; border-collapse: collapse; }
+  .match-table th {
+    text-align: left;
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--gray-400);
+    padding: 6px 10px;
+    border-bottom: 2px solid var(--gray-100);
+  }
+  .match-table td {
+    padding: 8px 10px;
+    font-size: 0.88rem;
+    border-bottom: 1px solid var(--gray-100);
+    vertical-align: middle;
+  }
+  .match-table tr:last-child td { border-bottom: none; }
+  .match-table tr:hover td { background: var(--gray-50); }
+
+  .correct { color: #1a9640; font-weight: 600; }
+  .wrong { color: var(--red); }
+  .pending { color: var(--gray-400); font-style: italic; }
+
+  /* Scoreboard */
+  .score-banner {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    gap: 16px;
+    align-items: center;
+    text-align: center;
+    margin-bottom: 20px;
+  }
+  .score-player { }
+  .score-player-name { font-size: 1rem; font-weight: 700; color: var(--gray-600); }
+  .score-player-pts { font-size: 2.8rem; font-weight: 800; color: var(--green-dark); line-height: 1; }
+  .score-player-pts.leading { color: var(--gold-dark); }
+  .score-vs { font-size: 1.1rem; font-weight: 700; color: var(--gray-400); }
+  .score-label { font-size: 0.72rem; color: var(--gray-400); margin-top: 2px; }
+
+  .breakdown-row { display: flex; gap: 8px; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--gray-100); }
+  .breakdown-label { flex: 1; font-size: 0.88rem; }
+  .breakdown-pts { font-size: 0.82rem; font-weight: 700; min-width: 50px; text-align: right; }
+  .breakdown-pts.p1 { color: var(--green); }
+  .breakdown-pts.p2 { color: #5b8de0; }
+
+  /* Player name label */
+  .player-btn span { cursor: default; }
+  .player-btn span[title] { cursor: pointer; }
+
+  /* Hint text */
+  .hint { font-size: 0.78rem; color: var(--gray-400); margin-top: 8px; line-height: 1.5; }
+  .hint a { color: var(--green-light); cursor: pointer; text-decoration: underline; }
+
+  /* Badge */
+  .badge {
+    display: inline-block;
+    background: var(--gold);
+    color: var(--gray-800);
+    font-size: 0.7rem;
+    font-weight: 700;
+    padding: 2px 7px;
+    border-radius: 10px;
+  }
+  .badge.blue { background: #e0ecff; color: #2657b0; }
+
+  /* Empty state */
+  .empty-state {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--gray-400);
+  }
+  .empty-state .big-icon { font-size: 3rem; margin-bottom: 10px; }
+
+  /* Info bar */
+  .info-bar {
+    background: linear-gradient(135deg, var(--green-dark), var(--green));
+    color: white;
+    border-radius: 10px;
+    padding: 14px 18px;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 0.85rem;
+  }
+  .info-bar .icon { font-size: 1.5rem; flex-shrink: 0; }
+
+  @media (max-width: 600px) {
+    .header-top { gap: 8px; }
+    .header-title h1 { font-size: 1.1rem; }
+    .score-player-pts { font-size: 2.2rem; }
+    main { padding: 16px 12px 60px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-top">
+    <div class="header-title">
+      <div>
+        <h1>⚽ World Cup 2026 Predictions</h1>
+        <div class="subtitle">USA · Canada · Mexico · June 11 – July 19</div>
+      </div>
+    </div>
+    <div class="header-actions">
+      <div class="player-switcher">
+        <button class="player-btn active" id="btn-p1" onclick="switchPlayer(0)">
+          <span id="p1-label" ondblclick="editName(0)" title="Double-click to rename">You</span>
+        </button>
+        <button class="player-btn" id="btn-p2" onclick="switchPlayer(1)">
+          <span id="p2-label" ondblclick="editName(1)" title="Double-click to rename">Dad</span>
+        </button>
+      </div>
+      <button class="btn btn-gold btn-sm" onclick="exportPicks()">⬆ Export</button>
+      <button class="btn btn-outline btn-sm" onclick="document.getElementById('import-file').click()">⬇ Import</button>
+      <input type="file" id="import-file" accept=".json" style="display:none" onchange="importPicks(event)">
+    </div>
+  </div>
+  <nav class="tabs">
+    <button class="tab-btn active" onclick="showTab('tournament', this)">🏆 Tournament</button>
+    <button class="tab-btn" onclick="showTab('groups', this)">⚽ Groups</button>
+    <button class="tab-btn" onclick="showTab('knockout', this)">🎯 Knockout</button>
+    <button class="tab-btn" onclick="showTab('results', this)">📋 Results</button>
+    <button class="tab-btn" onclick="showTab('scoreboard', this)">📊 Scoreboard</button>
+  </nav>
+</header>
+
+<main>
+
+  <!-- ── Tournament Picks ── -->
+  <div class="tab-panel active" id="tab-tournament">
+    <div class="info-bar">
+      <div class="icon">💡</div>
+      <div>Currently filling picks for <strong id="current-player-label">You</strong>. Use the switcher above to toggle between players. <strong>Export</strong> your picks as a JSON file to share with the other person.</div>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><span class="icon">🏆</span> Tournament Predictions</div>
+      <div class="field-grid">
+        <div class="field-group">
+          <label class="field-label">World Cup Winner</label>
+          <select class="field-select" id="pick-winner" onchange="savePick('winner', this.value)">
+            <option value="">– Pick a team –</option>
+          </select>
+        </div>
+        <div class="field-group">
+          <label class="field-label">Runner-Up (Finalist)</label>
+          <select class="field-select" id="pick-runner-up" onchange="savePick('runnerUp', this.value)">
+            <option value="">– Pick a team –</option>
+          </select>
+        </div>
+        <div class="field-group">
+          <label class="field-label">3rd Place</label>
+          <select class="field-select" id="pick-third" onchange="savePick('third', this.value)">
+            <option value="">– Pick a team –</option>
+          </select>
+        </div>
+        <div class="field-group">
+          <label class="field-label">Golden Boot (Top Scorer)</label>
+          <input class="field-input" id="pick-golden-boot" placeholder="Player name…" onchange="savePick('goldenBoot', this.value)">
+        </div>
+        <div class="field-group">
+          <label class="field-label">Best Player (Golden Ball)</label>
+          <input class="field-input" id="pick-best-player" placeholder="Player name…" onchange="savePick('bestPlayer', this.value)">
+        </div>
+        <div class="field-group">
+          <label class="field-label">Biggest Surprise Team</label>
+          <select class="field-select" id="pick-dark-horse" onchange="savePick('darkHorse', this.value)">
+            <option value="">– Pick a team –</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><span class="icon">🥇</span> Semi-Finalists (4 teams)</div>
+      <p class="hint" style="margin-bottom:12px">Pick the 4 teams you think reach the semi-finals.</p>
+      <div class="field-grid">
+        <div class="field-group">
+          <label class="field-label">Semi-Finalist #1</label>
+          <select class="field-select" id="pick-sf1" onchange="savePick('sf1', this.value)">
+            <option value="">– Pick a team –</option>
+          </select>
+        </div>
+        <div class="field-group">
+          <label class="field-label">Semi-Finalist #2</label>
+          <select class="field-select" id="pick-sf2" onchange="savePick('sf2', this.value)">
+            <option value="">– Pick a team –</option>
+          </select>
+        </div>
+        <div class="field-group">
+          <label class="field-label">Semi-Finalist #3</label>
+          <select class="field-select" id="pick-sf3" onchange="savePick('sf3', this.value)">
+            <option value="">– Pick a team –</option>
+          </select>
+        </div>
+        <div class="field-group">
+          <label class="field-label">Semi-Finalist #4</label>
+          <select class="field-select" id="pick-sf4" onchange="savePick('sf4', this.value)">
+            <option value="">– Pick a team –</option>
+          </select>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Group Stage ── -->
+  <div class="tab-panel" id="tab-groups">
+    <div class="card">
+      <div class="card-title"><span class="icon">⚽</span> Group Stage – Predict 1st & 2nd Place</div>
+      <p class="hint" style="margin-bottom:16px">Pick which team finishes 1st and 2nd in each group. <span class="badge">3 pts</span> for correct 1st place · <span class="badge blue">2 pts</span> for correct 2nd place</p>
+      <div class="groups-grid" id="groups-grid"></div>
+    </div>
+  </div>
+
+  <!-- ── Knockout ── -->
+  <div class="tab-panel" id="tab-knockout">
+    <div class="card">
+      <div class="card-title"><span class="icon">🎯</span> Knockout Stage Picks</div>
+      <p class="hint" style="margin-bottom:16px">Predict who advances through each round. Points are awarded when actual results are entered in the Results tab.</p>
+      <div id="knockout-content"></div>
+    </div>
+  </div>
+
+  <!-- ── Results ── -->
+  <div class="tab-panel" id="tab-results">
+    <div class="card">
+      <div class="card-title"><span class="icon">📋</span> Actual Tournament Results</div>
+      <p class="hint" style="margin-bottom:16px">Results sync automatically from the live football API. You can still override any field by hand — manual edits stick until the next sync overwrites that specific field.</p>
+
+      <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap; background:var(--gray-50); border:1.5px solid var(--gray-200); border-radius:10px; padding:12px 14px; margin-bottom:20px;">
+        <button class="btn btn-gold btn-sm" onclick="syncLiveResults()">🔄 Sync live results</button>
+        <span id="sync-status" style="font-size:0.8rem; color:var(--gray-600);">Not synced yet</span>
+        <span class="hint" style="font-size:0.72rem; margin-left:auto;">Auto-syncs every 5&nbsp;min while open</span>
+      </div>
+
+      <div class="card-title" style="font-size:0.9rem; margin-top:8px;"><span class="icon">🏆</span> Tournament Results</div>
+      <div class="field-grid" style="margin-bottom:20px">
+        <div class="field-group">
+          <label class="field-label">Champion</label>
+          <select class="field-select" id="res-winner" onchange="saveResult('winner', this.value)">
+            <option value="">– Not decided –</option>
+          </select>
+        </div>
+        <div class="field-group">
+          <label class="field-label">Runner-Up</label>
+          <select class="field-select" id="res-runner-up" onchange="saveResult('runnerUp', this.value)">
+            <option value="">– Not decided –</option>
+          </select>
+        </div>
+        <div class="field-group">
+          <label class="field-label">3rd Place</label>
+          <select class="field-select" id="res-third" onchange="saveResult('third', this.value)">
+            <option value="">– Not decided –</option>
+          </select>
+        </div>
+        <div class="field-group">
+          <label class="field-label">Golden Boot</label>
+          <input class="field-input" id="res-golden-boot" placeholder="Player name…" onchange="saveResult('goldenBoot', this.value)">
+        </div>
+        <div class="field-group">
+          <label class="field-label">Best Player (Golden Ball)</label>
+          <input class="field-input" id="res-best-player" placeholder="Player name…" onchange="saveResult('bestPlayer', this.value)">
+        </div>
+      </div>
+
+      <div class="card-title" style="font-size:0.9rem;"><span class="icon">⚽</span> Group Results (1st & 2nd place)</div>
+      <div class="groups-grid" id="results-groups-grid" style="margin-bottom:20px"></div>
+
+      <div class="card-title" style="font-size:0.9rem;"><span class="icon">🥇</span> Actual Semi-Finalists</div>
+      <div class="field-grid">
+        <div class="field-group">
+          <label class="field-label">Semi-Finalist #1</label>
+          <select class="field-select" id="res-sf1" onchange="saveResult('sf1', this.value)">
+            <option value="">– Not decided –</option>
+          </select>
+        </div>
+        <div class="field-group">
+          <label class="field-label">Semi-Finalist #2</label>
+          <select class="field-select" id="res-sf2" onchange="saveResult('sf2', this.value)">
+            <option value="">– Not decided –</option>
+          </select>
+        </div>
+        <div class="field-group">
+          <label class="field-label">Semi-Finalist #3</label>
+          <select class="field-select" id="res-sf3" onchange="saveResult('sf3', this.value)">
+            <option value="">– Not decided –</option>
+          </select>
+        </div>
+        <div class="field-group">
+          <label class="field-label">Semi-Finalist #4</label>
+          <select class="field-select" id="res-sf4" onchange="saveResult('sf4', this.value)">
+            <option value="">– Not decided –</option>
+          </select>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Scoreboard ── -->
+  <div class="tab-panel" id="tab-scoreboard">
+    <div class="card">
+      <div class="card-title"><span class="icon">📊</span> Scoreboard</div>
+      <div class="score-banner">
+        <div class="score-player">
+          <div class="score-player-name" id="score-p1-name">You</div>
+          <div class="score-player-pts" id="score-p1-pts">0</div>
+          <div class="score-label">points</div>
+        </div>
+        <div class="score-vs">vs</div>
+        <div class="score-player">
+          <div class="score-player-name" id="score-p2-name">Dad</div>
+          <div class="score-player-pts" id="score-p2-pts">0</div>
+          <div class="score-label">points</div>
+        </div>
+      </div>
+      <div id="score-breakdown"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><span class="icon">🔍</span> Picks Comparison</div>
+      <table class="match-table" id="comparison-table">
+        <thead>
+          <tr>
+            <th>Category</th>
+            <th id="cmp-p1-head">You</th>
+            <th id="cmp-p2-head">Dad</th>
+            <th>Actual</th>
+          </tr>
+        </thead>
+        <tbody id="comparison-body"></tbody>
+      </table>
+    </div>
+  </div>
+
+</main>
+
+<script>
+// ────────────────────────────────────────────
+// DATA
+// ────────────────────────────────────────────
+
+const GROUPS = {
+  A: { name: "Group A", teams: ["Mexico", "South Africa", "South Korea", "Czechia"] },
+  B: { name: "Group B", teams: ["Canada", "Bosnia & Herzegovina", "Qatar", "Switzerland"] },
+  C: { name: "Group C", teams: ["Brazil", "Morocco", "Haiti", "Scotland"] },
+  D: { name: "Group D", teams: ["USA", "Paraguay", "Australia", "Turkey"] },
+  E: { name: "Group E", teams: ["Germany", "Curaçao", "Ivory Coast", "Ecuador"] },
+  F: { name: "Group F", teams: ["Netherlands", "Japan", "Sweden", "Tunisia"] },
+  G: { name: "Group G", teams: ["Belgium", "Egypt", "Iran", "New Zealand"] },
+  H: { name: "Group H", teams: ["Spain", "Cape Verde", "Saudi Arabia", "Uruguay"] },
+  I: { name: "Group I", teams: ["France", "Senegal", "Iraq", "Norway"] },
+  J: { name: "Group J", teams: ["Argentina", "Algeria", "Austria", "Jordan"] },
+  K: { name: "Group K", teams: ["Portugal", "DR Congo", "Uzbekistan", "Colombia"] },
+  L: { name: "Group L", teams: ["England", "Croatia", "Ghana", "Panama"] }
+};
+
+const ALL_TEAMS = Object.values(GROUPS).flatMap(g => g.teams).sort();
+
+const KNOCKOUT_ROUNDS = [
+  { key: "r32", label: "Round of 32", count: 16 },
+  { key: "r16", label: "Round of 16", count: 8 },
+  { key: "qf",  label: "Quarter-Finals", count: 4 },
+];
+
+// ────────────────────────────────────────────
+// STATE
+// ────────────────────────────────────────────
+
+let currentPlayer = 0; // 0 = player1, 1 = player2
+
+function emptyPicks() {
+  return {
+    winner: "", runnerUp: "", third: "", goldenBoot: "", bestPlayer: "", darkHorse: "",
+    sf1: "", sf2: "", sf3: "", sf4: "",
+    groups: {},
+    knockout: { r32: [], r16: [], qf: [] }
+  };
+}
+
+function emptyResults() {
+  return {
+    winner: "", runnerUp: "", third: "", goldenBoot: "", bestPlayer: "",
+    sf1: "", sf2: "", sf3: "", sf4: "",
+    groups: {},
+    knockout: { r32: [], r16: [], qf: [] }
+  };
+}
+
+function load() {
+  return {
+    playerNames: JSON.parse(localStorage.getItem("wc26-names") || '["You","Dad"]'),
+    picks: [
+      JSON.parse(localStorage.getItem("wc26-p1") || "null") || emptyPicks(),
+      JSON.parse(localStorage.getItem("wc26-p2") || "null") || emptyPicks()
+    ],
+    results: JSON.parse(localStorage.getItem("wc26-results") || "null") || emptyResults()
+  };
+}
+
+function savePicksToStorage() {
+  const s = load();
+  localStorage.setItem("wc26-p1", JSON.stringify(s.picks[0]));
+  localStorage.setItem("wc26-p2", JSON.stringify(s.picks[1]));
+}
+
+let state = load();
+
+// ────────────────────────────────────────────
+// HELPERS
+// ────────────────────────────────────────────
+
+function teamOptions(selectedValue = "") {
+  return `<option value="">– Pick a team –</option>` +
+    ALL_TEAMS.map(t => `<option value="${t}"${t === selectedValue ? " selected" : ""}>${t}</option>`).join("");
+}
+
+function teamOptionsResult(selectedValue = "") {
+  return `<option value="">– Not decided –</option>` +
+    ALL_TEAMS.map(t => `<option value="${t}"${t === selectedValue ? " selected" : ""}>${t}</option>`).join("");
+}
+
+function p() { return state.picks[currentPlayer]; }
+
+// ────────────────────────────────────────────
+// UI INIT
+// ────────────────────────────────────────────
+
+function init() {
+  // Player names
+  document.getElementById("p1-label").textContent = state.playerNames[0];
+  document.getElementById("p2-label").textContent = state.playerNames[1];
+
+  populateTeamDropdowns();
+  buildGroupsGrid();
+  buildKnockoutSection();
+  buildResultsGroupsGrid();
+  populateResultDropdowns();
+  renderCurrentPlayer();
+}
+
+function populateTeamDropdowns() {
+  const selects = ["pick-winner","pick-runner-up","pick-third","pick-dark-horse",
+                   "pick-sf1","pick-sf2","pick-sf3","pick-sf4"];
+  selects.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.innerHTML = teamOptions();
+  });
+}
+
+function populateResultDropdowns() {
+  const selects = ["res-winner","res-runner-up","res-third","res-sf1","res-sf2","res-sf3","res-sf4"];
+  selects.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.innerHTML = teamOptionsResult();
+  });
+}
+
+function buildGroupsGrid() {
+  const container = document.getElementById("groups-grid");
+  container.innerHTML = Object.entries(GROUPS).map(([key, group]) => `
+    <div class="group-card">
+      <div class="group-header">
+        <div class="group-name">${group.name}</div>
+        <div class="group-teams">${group.teams.join(", ")}</div>
+      </div>
+      <div class="group-picks">
+        <div class="group-pick-row">
+          <span class="pick-badge">1st</span>
+          <select class="field-select" data-group="${key}" data-pos="first" onchange="saveGroupPick('${key}','first',this.value)" style="flex:1">
+            ${group.teams.map(t => `<option value="${t}">${t}</option>`).join("")}
+          </select>
+        </div>
+        <div class="group-pick-row">
+          <span class="pick-badge second">2nd</span>
+          <select class="field-select" data-group="${key}" data-pos="second" onchange="saveGroupPick('${key}','second',this.value)" style="flex:1">
+            ${group.teams.map(t => `<option value="${t}">${t}</option>`).join("")}
+          </select>
+        </div>
+      </div>
+    </div>
+  `).join("");
+}
+
+function buildResultsGroupsGrid() {
+  const container = document.getElementById("results-groups-grid");
+  container.innerHTML = Object.entries(GROUPS).map(([key, group]) => `
+    <div class="group-card">
+      <div class="group-header">
+        <div class="group-name">${group.name}</div>
+      </div>
+      <div class="group-picks">
+        <div class="group-pick-row">
+          <span class="pick-badge">1st</span>
+          <select class="field-select" data-group="${key}" data-pos="first" onchange="saveResultGroup('${key}','first',this.value)" style="flex:1">
+            <option value="">– TBD –</option>
+            ${group.teams.map(t => `<option value="${t}">${t}</option>`).join("")}
+          </select>
+        </div>
+        <div class="group-pick-row">
+          <span class="pick-badge second">2nd</span>
+          <select class="field-select" data-group="${key}" data-pos="second" onchange="saveResultGroup('${key}','second',this.value)" style="flex:1">
+            <option value="">– TBD –</option>
+            ${group.teams.map(t => `<option value="${t}">${t}</option>`).join("")}
+          </select>
+        </div>
+      </div>
+    </div>
+  `).join("");
+}
+
+function buildKnockoutSection() {
+  const container = document.getElementById("knockout-content");
+  container.innerHTML = KNOCKOUT_ROUNDS.map(round => `
+    <div style="margin-bottom:20px">
+      <div class="card-title" style="font-size:0.88rem; margin-bottom:10px;">
+        <span class="icon">🔵</span> ${round.label} Winners
+        <span class="badge blue" style="margin-left:4px">${round.key === 'r32' ? '1' : round.key === 'r16' ? '2' : '3'} pt${round.key !== 'r32' ? 's' : ''} each</span>
+      </div>
+      <div class="field-grid">
+        ${Array.from({length: round.count}, (_, i) => `
+          <div class="field-group">
+            <label class="field-label">Match ${i+1} Winner</label>
+            <select class="field-select" data-round="${round.key}" data-idx="${i}"
+              onchange="saveKnockoutPick('${round.key}', ${i}, this.value)">
+              ${teamOptions()}
+            </select>
+          </div>
+        `).join("")}
+      </div>
+    </div>
+  `).join("");
+}
+
+// ────────────────────────────────────────────
+// RENDER CURRENT PLAYER
+// ────────────────────────────────────────────
+
+function renderCurrentPlayer() {
+  const picks = p();
+  const name = state.playerNames[currentPlayer];
+
+  document.getElementById("current-player-label").textContent = name;
+
+  // Tournament picks
+  const fields = { winner: "pick-winner", runnerUp: "pick-runner-up", third: "pick-third",
+    darkHorse: "pick-dark-horse", sf1: "pick-sf1", sf2: "pick-sf2", sf3: "pick-sf3", sf4: "pick-sf4" };
+  Object.entries(fields).forEach(([key, id]) => {
+    const el = document.getElementById(id);
+    if (el) { el.innerHTML = teamOptions(picks[key]); }
+  });
+  ["goldenBoot","bestPlayer"].forEach(key => {
+    const id = key === "goldenBoot" ? "pick-golden-boot" : "pick-best-player";
+    const el = document.getElementById(id);
+    if (el) el.value = picks[key] || "";
+  });
+
+  // Group picks
+  Object.entries(GROUPS).forEach(([key]) => {
+    const groupPick = picks.groups[key] || {};
+    const selects = document.querySelectorAll(`[data-group="${key}"]`);
+    selects.forEach(sel => {
+      if (sel.closest("#groups-grid")) {
+        sel.value = groupPick[sel.dataset.pos] || GROUPS[key].teams[0];
+      }
+    });
+  });
+
+  // Knockout picks
+  KNOCKOUT_ROUNDS.forEach(round => {
+    const roundPicks = picks.knockout[round.key] || [];
+    document.querySelectorAll(`[data-round="${round.key}"]`).forEach(sel => {
+      const idx = parseInt(sel.dataset.idx);
+      sel.innerHTML = teamOptions(roundPicks[idx] || "");
+    });
+  });
+
+  // Results
+  const res = state.results;
+  const resFields = { winner: "res-winner", runnerUp: "res-runner-up", third: "res-third",
+    sf1: "res-sf1", sf2: "res-sf2", sf3: "res-sf3", sf4: "res-sf4" };
+  Object.entries(resFields).forEach(([key, id]) => {
+    const el = document.getElementById(id);
+    if (el) { el.innerHTML = teamOptionsResult(res[key]); }
+  });
+  ["goldenBoot","bestPlayer"].forEach(key => {
+    const id = key === "goldenBoot" ? "res-golden-boot" : "res-best-player";
+    const el = document.getElementById(id);
+    if (el) el.value = res[key] || "";
+  });
+
+  // Results groups
+  Object.entries(GROUPS).forEach(([key]) => {
+    const groupRes = res.groups[key] || {};
+    document.querySelectorAll(`[data-group="${key}"]`).forEach(sel => {
+      if (sel.closest("#results-groups-grid")) {
+        sel.value = groupRes[sel.dataset.pos] || "";
+      }
+    });
+  });
+
+  renderScoreboard();
+}
+
+// ────────────────────────────────────────────
+// SAVE FUNCTIONS
+// ────────────────────────────────────────────
+
+function savePick(key, value) {
+  state.picks[currentPlayer][key] = value;
+  localStorage.setItem(`wc26-p${currentPlayer + 1}`, JSON.stringify(state.picks[currentPlayer]));
+  renderScoreboard();
+}
+
+function saveGroupPick(groupKey, pos, value) {
+  if (!state.picks[currentPlayer].groups[groupKey]) state.picks[currentPlayer].groups[groupKey] = {};
+  state.picks[currentPlayer].groups[groupKey][pos] = value;
+  localStorage.setItem(`wc26-p${currentPlayer + 1}`, JSON.stringify(state.picks[currentPlayer]));
+  renderScoreboard();
+}
+
+function saveKnockoutPick(round, idx, value) {
+  if (!state.picks[currentPlayer].knockout[round]) state.picks[currentPlayer].knockout[round] = [];
+  state.picks[currentPlayer].knockout[round][idx] = value;
+  localStorage.setItem(`wc26-p${currentPlayer + 1}`, JSON.stringify(state.picks[currentPlayer]));
+  renderScoreboard();
+}
+
+function saveResult(key, value) {
+  state.results[key] = value;
+  localStorage.setItem("wc26-results", JSON.stringify(state.results));
+  renderScoreboard();
+}
+
+function saveResultGroup(groupKey, pos, value) {
+  if (!state.results.groups[groupKey]) state.results.groups[groupKey] = {};
+  state.results.groups[groupKey][pos] = value;
+  localStorage.setItem("wc26-results", JSON.stringify(state.results));
+  renderScoreboard();
+}
+
+function editName(playerIdx) {
+  const defaults = ["You", "Dad"];
+  const current = state.playerNames[playerIdx];
+  const val = prompt(`Rename Player ${playerIdx + 1}:`, current);
+  if (val !== null && val.trim()) {
+    state.playerNames[playerIdx] = val.trim();
+    localStorage.setItem("wc26-names", JSON.stringify(state.playerNames));
+    document.getElementById(`p${playerIdx + 1}-label`).textContent = val.trim();
+    updatePlayerLabels();
+  }
+}
+
+function savePlayerName(playerIdx) {
+  const defaults = ["You", "Dad"];
+  const el = document.getElementById(`p${playerIdx + 1}-label`);
+  const val = el ? el.textContent.trim() : defaults[playerIdx];
+  state.playerNames[playerIdx] = val || defaults[playerIdx];
+  localStorage.setItem("wc26-names", JSON.stringify(state.playerNames));
+  updatePlayerLabels();
+}
+
+function updatePlayerLabels() {
+  document.getElementById("current-player-label").textContent = state.playerNames[currentPlayer];
+  document.getElementById("score-p1-name").textContent = state.playerNames[0];
+  document.getElementById("score-p2-name").textContent = state.playerNames[1];
+  document.getElementById("cmp-p1-head").textContent = state.playerNames[0];
+  document.getElementById("cmp-p2-head").textContent = state.playerNames[1];
+}
+
+// ────────────────────────────────────────────
+// PLAYER SWITCHING
+// ────────────────────────────────────────────
+
+function switchPlayer(idx) {
+  currentPlayer = idx;
+  document.getElementById("btn-p1").classList.toggle("active", idx === 0);
+  document.getElementById("btn-p2").classList.toggle("active", idx === 1);
+  renderCurrentPlayer();
+}
+
+// ────────────────────────────────────────────
+// TABS
+// ────────────────────────────────────────────
+
+function showTab(name, btn) {
+  document.querySelectorAll(".tab-panel").forEach(p => p.classList.remove("active"));
+  document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+  document.getElementById(`tab-${name}`).classList.add("active");
+  if (btn) btn.classList.add("active");
+  if (name === "scoreboard") renderScoreboard();
+}
+
+// ────────────────────────────────────────────
+// SCORING
+// ────────────────────────────────────────────
+
+function scorePlayer(picks, results) {
+  let score = 0;
+  const breakdown = [];
+
+  // Tournament predictions
+  if (results.winner && picks.winner === results.winner) {
+    score += 5; breakdown.push({ label: "Correct Champion", pts: 5 });
+  }
+  if (results.runnerUp && picks.runnerUp === results.runnerUp) {
+    score += 3; breakdown.push({ label: "Correct Runner-Up", pts: 3 });
+  }
+  if (results.third && picks.third === results.third) {
+    score += 2; breakdown.push({ label: "Correct 3rd Place", pts: 2 });
+  }
+  if (results.goldenBoot && picks.goldenBoot &&
+      picks.goldenBoot.toLowerCase() === results.goldenBoot.toLowerCase()) {
+    score += 3; breakdown.push({ label: "Correct Golden Boot", pts: 3 });
+  }
+  if (results.bestPlayer && picks.bestPlayer &&
+      picks.bestPlayer.toLowerCase() === results.bestPlayer.toLowerCase()) {
+    score += 3; breakdown.push({ label: "Correct Best Player", pts: 3 });
+  }
+
+  // Semi-finalists
+  const resSFs = [results.sf1, results.sf2, results.sf3, results.sf4].filter(Boolean);
+  const pickSFs = [picks.sf1, picks.sf2, picks.sf3, picks.sf4].filter(Boolean);
+  let sfPts = 0;
+  pickSFs.forEach(t => { if (resSFs.includes(t)) sfPts += 2; });
+  if (sfPts > 0) { score += sfPts; breakdown.push({ label: `Semi-finalists correct`, pts: sfPts }); }
+
+  // Group stage
+  let groupPts = 0;
+  Object.entries(GROUPS).forEach(([key]) => {
+    const pg = picks.groups[key] || {};
+    const rg = results.groups[key] || {};
+    if (rg.first && pg.first === rg.first) groupPts += 3;
+    if (rg.second && pg.second === rg.second) groupPts += 2;
+  });
+  if (groupPts > 0) { score += groupPts; breakdown.push({ label: "Group stage predictions", pts: groupPts }); }
+
+  // Knockout rounds
+  const roundPts = { r32: 1, r16: 2, qf: 3 };
+  KNOCKOUT_ROUNDS.forEach(round => {
+    const pickRound = picks.knockout[round.key] || [];
+    const resRound = results.knockout?.[round.key] || [];
+    let pts = 0;
+    pickRound.forEach((t, i) => { if (t && resRound[i] && t === resRound[i]) pts += roundPts[round.key]; });
+    if (pts > 0) { score += pts; breakdown.push({ label: `${round.label} correct picks`, pts }); }
+  });
+
+  return { score, breakdown };
+}
+
+function renderScoreboard() {
+  const r = state.results;
+  const s0 = scorePlayer(state.picks[0], r);
+  const s1 = scorePlayer(state.picks[1], r);
+
+  const p0pts = document.getElementById("score-p1-pts");
+  const p1pts = document.getElementById("score-p2-pts");
+  p0pts.textContent = s0.score;
+  p1pts.textContent = s1.score;
+  p0pts.className = "score-player-pts" + (s0.score > s1.score ? " leading" : "");
+  p1pts.className = "score-player-pts" + (s1.score > s0.score ? " leading" : "");
+
+  document.getElementById("score-p1-name").textContent = state.playerNames[0];
+  document.getElementById("score-p2-name").textContent = state.playerNames[1];
+
+  // Breakdown
+  const allKeys = new Set([...s0.breakdown.map(b => b.label), ...s1.breakdown.map(b => b.label)]);
+  const breakdownEl = document.getElementById("score-breakdown");
+  if (allKeys.size === 0) {
+    breakdownEl.innerHTML = `<div class="empty-state"><div class="big-icon">🏗️</div><p>Enter results in the <strong>Results</strong> tab to see scores here.</p></div>`;
+  } else {
+    const map0 = Object.fromEntries(s0.breakdown.map(b => [b.label, b.pts]));
+    const map1 = Object.fromEntries(s1.breakdown.map(b => [b.label, b.pts]));
+    breakdownEl.innerHTML = [...allKeys].map(label => `
+      <div class="breakdown-row">
+        <div class="breakdown-label">${label}</div>
+        <div class="breakdown-pts p1">${map0[label] ? `+${map0[label]}` : '–'}</div>
+        <div class="breakdown-pts p2">${map1[label] ? `+${map1[label]}` : '–'}</div>
+      </div>
+    `).join("");
+  }
+
+  // Comparison table
+  renderComparison();
+  updatePlayerLabels();
+}
+
+function renderComparison() {
+  const p1 = state.picks[0];
+  const p2 = state.picks[1];
+  const r = state.results;
+
+  const rows = [
+    { label: "🏆 Champion", p1v: p1.winner, p2v: p2.winner, rv: r.winner },
+    { label: "🥈 Runner-Up", p1v: p1.runnerUp, p2v: p2.runnerUp, rv: r.runnerUp },
+    { label: "🥉 3rd Place", p1v: p1.third, p2v: p2.third, rv: r.third },
+    { label: "⚽ Golden Boot", p1v: p1.goldenBoot, p2v: p2.goldenBoot, rv: r.goldenBoot },
+    { label: "⭐ Best Player", p1v: p1.bestPlayer, p2v: p2.bestPlayer, rv: r.bestPlayer },
+    { label: "😮 Dark Horse", p1v: p1.darkHorse, p2v: p2.darkHorse, rv: "–" },
+    { label: "🔵 Semi-Final 1", p1v: p1.sf1, p2v: p2.sf1, rv: r.sf1 },
+    { label: "🔵 Semi-Final 2", p1v: p1.sf2, p2v: p2.sf2, rv: r.sf2 },
+    { label: "🔵 Semi-Final 3", p1v: p1.sf3, p2v: p2.sf3, rv: r.sf3 },
+    { label: "🔵 Semi-Final 4", p1v: p1.sf4, p2v: p2.sf4, rv: r.sf4 },
+  ];
+
+  // Add group rows
+  Object.entries(GROUPS).forEach(([key, grp]) => {
+    const pg1 = p1.groups[key] || {};
+    const pg2 = p2.groups[key] || {};
+    const rg = r.groups[key] || {};
+    rows.push({ label: `${grp.name} 1st`, p1v: pg1.first, p2v: pg2.first, rv: rg.first });
+    rows.push({ label: `${grp.name} 2nd`, p1v: pg1.second, p2v: pg2.second, rv: rg.second });
+  });
+
+  function cell(val, actual) {
+    if (!val) return `<td class="pending">–</td>`;
+    if (!actual || actual === "–") return `<td>${val}</td>`;
+    const match = val.toLowerCase() === actual.toLowerCase();
+    return `<td class="${match ? 'correct' : 'wrong'}">${val}${match ? ' ✓' : ' ✗'}</td>`;
+  }
+
+  document.getElementById("comparison-body").innerHTML = rows.map(row => `
+    <tr>
+      <td><strong>${row.label}</strong></td>
+      ${cell(row.p1v, row.rv)}
+      ${cell(row.p2v, row.rv)}
+      <td>${row.rv || '<span class="pending">TBD</span>'}</td>
+    </tr>
+  `).join("");
+}
+
+// ────────────────────────────────────────────
+// EXPORT / IMPORT
+// ────────────────────────────────────────────
+
+function exportPicks() {
+  const playerName = state.playerNames[currentPlayer];
+  const data = {
+    exportedBy: playerName,
+    exportDate: new Date().toISOString(),
+    playerNames: state.playerNames,
+    picks: state.picks,
+    results: state.results
+  };
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = `wc2026-predictions-${playerName.toLowerCase().replace(/\s+/g,'-')}.json`;
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+function importPicks(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const data = JSON.parse(e.target.result);
+      if (data.picks) {
+        state.picks = data.picks;
+        localStorage.setItem("wc26-p1", JSON.stringify(state.picks[0]));
+        localStorage.setItem("wc26-p2", JSON.stringify(state.picks[1]));
+      }
+      if (data.results) {
+        state.results = data.results;
+        localStorage.setItem("wc26-results", JSON.stringify(state.results));
+      }
+      if (data.playerNames) {
+        state.playerNames = data.playerNames;
+        localStorage.setItem("wc26-names", JSON.stringify(state.playerNames));
+        document.getElementById("p1-label").textContent = state.playerNames[0];
+        document.getElementById("p2-label").textContent = state.playerNames[1];
+      }
+      renderCurrentPlayer();
+      alert(`✅ Picks imported from ${data.exportedBy || "file"}!`);
+    } catch {
+      alert("❌ Couldn't read that file. Make sure it's a valid WC2026 predictions JSON.");
+    }
+  };
+  reader.readAsText(file);
+  event.target.value = "";
+}
+
+// ────────────────────────────────────────────
+// SCORING GUIDE
+// ────────────────────────────────────────────
+// Champion correct:        5 pts
+// Runner-up correct:       3 pts
+// 3rd place correct:       2 pts
+// Golden Boot correct:     3 pts
+// Best Player correct:     3 pts
+// Each correct SF team:    2 pts
+// Correct group 1st:       3 pts
+// Correct group 2nd:       2 pts
+// Correct R32 match winner: 1 pt
+// Correct R16 match winner: 2 pts
+// Correct QF match winner:  3 pts
+
+// ────────────────────────────────────────────
+// LIVE RESULTS SYNC  (football-data.org via /api/wc proxy)
+// ────────────────────────────────────────────
+//
+// Pulls standings, scorers, and matches from your serverless proxy and maps
+// them into state.results, then re-scores. The proxy holds the API key — this
+// file never sees it. Path below is relative, so it works wherever the app is
+// deployed (Cloudflare Pages / Vercel / Netlify) with the matching function.
+
+const SYNC_API_BASE  = "/api/wc";
+const SYNC_INTERVAL  = 5 * 60 * 1000; // 5 minutes
+
+// Map the API's team names onto this app's canonical spellings.
+const NAME_ALIASES = {
+  "korea republic": "south korea", "republic of korea": "south korea",
+  "united states": "usa", "united states of america": "usa",
+  "turkiye": "turkey",
+  "cote divoire": "ivory coast", "cote d ivoire": "ivory coast",
+  "cabo verde": "cape verde",
+  "ir iran": "iran", "iran islamic republic": "iran",
+  "congo dr": "dr congo", "democratic republic of congo": "dr congo",
+  "bosnia and herzegovina": "bosnia herzegovina",
+  "bosnia & herzegovina": "bosnia herzegovina",
+  "czech republic": "czechia"
+};
+
+function normName(s) {
+  return (s || "").toLowerCase()
+    .normalize("NFD").replace(/[\u0300-\u036f]/g, "")  // strip accents
+    .replace(/[^a-z0-9]+/g, " ").trim();
+}
+function canonKey(s) { const n = normName(s); return NAME_ALIASES[n] || n; }
+
+// Match an API team name to one of a small candidate list (group of 4, or all teams)
+function matchTeam(apiName, candidates) {
+  if (!apiName) return null;
+  const t = canonKey(apiName);
+  for (const c of candidates) if (canonKey(c) === t) return c;
+  for (const c of candidates) {
+    const ck = canonKey(c);
+    if (ck === t || ck.startsWith(t) || t.startsWith(ck) || ck.includes(t) || t.includes(ck)) return c;
+  }
+  return null;
+}
+
+async function fetchResource(resource) {
+  const res = await fetch(`${SYNC_API_BASE}?resource=${resource}`, { cache: "no-store" });
+  if (!res.ok) throw new Error(`${resource} → HTTP ${res.status}`);
+  return res.json();
+}
+
+async function syncLiveResults({ silent = false } = {}) {
+  const statusEl = document.getElementById("sync-status");
+  if (statusEl) statusEl.textContent = "Syncing…";
+  try {
+    const [standings, scorers, matches] = await Promise.all([
+      fetchResource("standings").catch(() => null),
+      fetchResource("scorers").catch(() => null),
+      fetchResource("matches").catch(() => null),
+    ]);
+
+    let changed = false;
+    const set = (obj, key, val) => {
+      if (val && obj[key] !== val) { obj[key] = val; changed = true; }
+    };
+
+    // ---- Group 1st / 2nd — only once a group has fully played out ----
+    if (standings && Array.isArray(standings.standings)) {
+      standings.standings
+        .filter(s => s.type === "TOTAL" && s.group)
+        .forEach(s => {
+          const key = String(s.group).replace(/GROUP[_\s]*/i, "").trim().toUpperCase();
+          const grp = GROUPS[key];
+          if (!grp || !Array.isArray(s.table) || s.table.length < 2) return;
+          const complete = s.table.every(r => (r.playedGames || 0) >= 3);
+          if (!complete) return;
+          if (!state.results.groups[key]) state.results.groups[key] = {};
+          set(state.results.groups[key], "first",  matchTeam(s.table[0].team?.name, grp.teams));
+          set(state.results.groups[key], "second", matchTeam(s.table[1].team?.name, grp.teams));
+        });
+    }
+
+    // ---- Golden Boot — current top scorer ----
+    if (scorers && Array.isArray(scorers.scorers) && scorers.scorers.length) {
+      const top = scorers.scorers[0].player?.name;
+      if (top) set(state.results, "goldenBoot", top);
+    }
+
+    // ---- Knockout-derived results from the match list ----
+    if (matches && Array.isArray(matches.matches)) {
+      const all = matches.matches;
+      const finished = all.filter(m => m.status === "FINISHED");
+      const winner = m => m.score?.winner === "HOME_TEAM" ? m.homeTeam?.name
+                       : m.score?.winner === "AWAY_TEAM" ? m.awayTeam?.name : null;
+      const loser  = m => m.score?.winner === "HOME_TEAM" ? m.awayTeam?.name
+                       : m.score?.winner === "AWAY_TEAM" ? m.homeTeam?.name : null;
+
+      // Semi-finalists: the four teams featured in semi-final fixtures
+      const sf = [];
+      all.filter(m => /SEMI/i.test(m.stage || "")).forEach(m => {
+        [m.homeTeam?.name, m.awayTeam?.name].forEach(n => {
+          const c = matchTeam(n, ALL_TEAMS);
+          if (c && !sf.includes(c)) sf.push(c);
+        });
+      });
+      ["sf1", "sf2", "sf3", "sf4"].forEach((k, i) => set(state.results, k, sf[i]));
+
+      // Final → champion + runner-up
+      const finalM = finished.find(m => (m.stage || "") === "FINAL");
+      if (finalM) {
+        set(state.results, "winner",   matchTeam(winner(finalM), ALL_TEAMS));
+        set(state.results, "runnerUp", matchTeam(loser(finalM),  ALL_TEAMS));
+      }
+      // Third-place playoff → 3rd
+      const thirdM = finished.find(m => /THIRD/i.test(m.stage || ""));
+      if (thirdM) set(state.results, "third", matchTeam(winner(thirdM), ALL_TEAMS));
+    }
+
+    if (changed) {
+      localStorage.setItem("wc26-results", JSON.stringify(state.results));
+      renderCurrentPlayer();
+    }
+
+    const allDead = !standings && !scorers && !matches;
+    if (statusEl) {
+      statusEl.textContent = allDead
+        ? "Sync unavailable (check proxy / API key)"
+        : `Synced ${new Date().toLocaleTimeString()}${changed ? " · results updated" : ""}`;
+    }
+  } catch (e) {
+    if (statusEl) statusEl.textContent = "Sync unavailable";
+    if (!silent) console.error("Live sync failed:", e);
+  }
+}
+
+// ────────────────────────────────────────────
+// BOOT
+// ────────────────────────────────────────────
+
+init();
+syncLiveResults({ silent: true });
+setInterval(() => syncLiveResults({ silent: true }), SYNC_INTERVAL);
+</script>
+</body>
+</html>

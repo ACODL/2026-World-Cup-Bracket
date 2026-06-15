@@ -1,0 +1,19 @@
+{
+  // Pins the Pages project config into the repo so the KV binding is applied
+  // on EVERY deployment and can't silently drop. Once this file is deployed it
+  // is the source of truth for the fields below — manage them here, not in the
+  // dashboard. (Your FOOTBALL_DATA_KEY secret is NOT defined here, so it stays
+  // a dashboard secret and is unaffected.)
+
+  "name": "2026-world-cup-bracket",
+  "pages_build_output_dir": ".",
+  // Set to roughly today's date; just needs to be a valid recent date.
+  "compatibility_date": "2026-06-01",
+
+  "kv_namespaces": [
+    {
+      "binding": "PICKS",
+      "id": "e1efe4dd21c24380b0f0d5c1165d6b7d"
+    }
+  ]
+}

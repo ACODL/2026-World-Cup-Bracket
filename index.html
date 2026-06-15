@@ -887,6 +887,7 @@ function renderCurrentPlayer() {
 function savePick(key, value) {
   state.picks[currentPlayer][key] = value;
   localStorage.setItem(`wc26-p${currentPlayer + 1}`, JSON.stringify(state.picks[currentPlayer]));
+  queueSave(currentPlayer);
   renderScoreboard();
 }
 
@@ -894,6 +895,7 @@ function saveGroupPick(groupKey, pos, value) {
   if (!state.picks[currentPlayer].groups[groupKey]) state.picks[currentPlayer].groups[groupKey] = {};
   state.picks[currentPlayer].groups[groupKey][pos] = value;
   localStorage.setItem(`wc26-p${currentPlayer + 1}`, JSON.stringify(state.picks[currentPlayer]));
+  queueSave(currentPlayer);
   renderScoreboard();
 }
 
@@ -901,6 +903,7 @@ function saveKnockoutPick(round, idx, value) {
   if (!state.picks[currentPlayer].knockout[round]) state.picks[currentPlayer].knockout[round] = [];
   state.picks[currentPlayer].knockout[round][idx] = value;
   localStorage.setItem(`wc26-p${currentPlayer + 1}`, JSON.stringify(state.picks[currentPlayer]));
+  queueSave(currentPlayer);
   renderScoreboard();
 }
 
@@ -925,6 +928,7 @@ function editName(playerIdx) {
     state.playerNames[playerIdx] = val.trim();
     localStorage.setItem("wc26-names", JSON.stringify(state.playerNames));
     document.getElementById(`p${playerIdx + 1}-label`).textContent = val.trim();
+    queueSave("names");
     updatePlayerLabels();
   }
 }
@@ -1152,6 +1156,8 @@ function importPicks(event) {
         document.getElementById("p2-label").textContent = state.playerNames[1];
       }
       renderCurrentPlayer();
+      if (data.picks) { queueSave(0); queueSave(1); }
+      if (data.playerNames) queueSave("names");
       alert(`✅ Picks imported from ${data.exportedBy || "file"}!`);
     } catch {
       alert("❌ Couldn't read that file. Make sure it's a valid WC2026 predictions JSON.");
@@ -1175,6 +1181,81 @@ function importPicks(event) {
 // Correct R32 match winner: 1 pt
 // Correct R16 match winner: 2 pts
 // Correct QF match winner:  3 pts
+
+// ────────────────────────────────────────────
+// SHARED BACKEND  (Cloudflare KV via /api/state)
+// ────────────────────────────────────────────
+//
+// Keeps both players' picks in sync across devices. Each player writes only
+// their own slot (0 or 1), plus a shared "names" slot, so the two of you can
+// never overwrite each other. Local edits you haven't saved yet are never
+// clobbered by an incoming refresh (tracked via dirtySlots).
+
+const STATE_API = "/api/state";
+const PULL_INTERVAL = 30 * 1000; // 30s
+const dirtySlots = new Set();    // slots with unsaved local edits: 0, 1, or "names"
+const saveTimers = {};
+
+function queueSave(slot) {
+  dirtySlots.add(slot);
+  clearTimeout(saveTimers[slot]);
+  saveTimers[slot] = setTimeout(() => pushSlot(slot), 600); // debounce rapid edits
+}
+
+async function pushSlot(slot) {
+  const body = slot === "names"
+    ? { names: state.playerNames }
+    : { slot, picks: state.picks[slot] };
+  try {
+    const res = await fetch(STATE_API, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify(body),
+    });
+    if (res.ok) dirtySlots.delete(slot); // stays dirty (retries later) if it failed
+  } catch (e) { /* offline — will retry on next edit or refresh */ }
+}
+
+async function pullSharedState({ initial = false } = {}) {
+  let data;
+  try {
+    const res = await fetch(STATE_API, { cache: "no-store" });
+    if (!res.ok) return;
+    data = await res.json();
+  } catch (e) { return; }
+
+  let touched = false;
+
+  // Names (skip if this device has an unsaved rename)
+  if (Array.isArray(data.playerNames) && !dirtySlots.has("names")) {
+    if (JSON.stringify(data.playerNames) !== JSON.stringify(state.playerNames)) {
+      state.playerNames = data.playerNames;
+      localStorage.setItem("wc26-names", JSON.stringify(state.playerNames));
+      const l1 = document.getElementById("p1-label"); if (l1) l1.textContent = state.playerNames[0];
+      const l2 = document.getElementById("p2-label"); if (l2) l2.textContent = state.playerNames[1];
+      touched = true;
+    }
+  } else if (initial && data.playerNames == null) {
+    queueSave("names"); // seed an empty backend from local
+  }
+
+  // Picks per slot (never overwrite a slot with unsaved local edits)
+  [0, 1].forEach(slot => {
+    if (dirtySlots.has(slot)) return;
+    const incoming = data.picks ? data.picks[slot] : null;
+    if (incoming) {
+      if (JSON.stringify(incoming) !== JSON.stringify(state.picks[slot])) {
+        state.picks[slot] = incoming;
+        localStorage.setItem(`wc26-p${slot + 1}`, JSON.stringify(incoming));
+        touched = true;
+      }
+    } else if (initial) {
+      queueSave(slot); // seed backend with whatever this device already has
+    }
+  });
+
+  if (touched) { updatePlayerLabels(); renderCurrentPlayer(); }
+}
 
 // ────────────────────────────────────────────
 // LIVE RESULTS SYNC  (football-data.org via /api/wc proxy)
@@ -1373,6 +1454,11 @@ async function renderLiveStandings(prefetched) {
 // ────────────────────────────────────────────
 
 init();
+
+pullSharedState({ initial: true });
+setInterval(() => pullSharedState(), PULL_INTERVAL);
+document.addEventListener("visibilitychange", () => { if (!document.hidden) pullSharedState(); });
+
 syncLiveResults({ silent: true });
 setInterval(() => syncLiveResults({ silent: true }), SYNC_INTERVAL);
 </script>
